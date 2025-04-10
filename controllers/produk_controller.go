@@ -91,28 +91,50 @@ func (c *ProdukController) GetProdukByKategori(ctx *gin.Context) {
 
 // Commands
 func (c *ProdukController) CreateProduk(ctx *gin.Context) {
-	// Models
-	var produk models.Produk
+	// Request body
+	var req models.CreateProduk
 
 	// Validation
-	if err := ctx.ShouldBindJSON(&produk); err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "invalid request body",
 		})
+		return
 	}
 
-	// Query
-	result := c.DB.Create(&produk)
-
-	// Response
-	if result.Error != nil {
+	// Create Produk
+	produk := models.Produk{
+		Name:      req.Name,
+		Deskripsi: req.Deskripsi,
+		Harga:     req.Harga,
+		Kategori:  req.Kategori,
+	}
+	if err := c.DB.Create(&produk).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "failed to create produk",
 		})
+		return
 	}
 
+	// Create Inventaris
+	inventaris := models.Inventaris{
+		ProdukID: produk.ID,
+		Jumlah:   req.Jumlah,
+		Lokasi:   req.Lokasi,
+	}
+	if err := c.DB.Create(&inventaris).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": "failed to create inventaris",
+		})
+		return
+	}
+
+	// Response
 	ctx.JSON(http.StatusCreated, gin.H{
-		"data":    produk,
+		"data": gin.H{
+			"produk":     produk,
+			"inventaris": inventaris,
+		},
 		"message": "Produk created",
 	})
 }

@@ -19,9 +19,11 @@ func main() {
 
 	db := config.ConnectDatabase()
 	db.AutoMigrate(&models.Produk{})
+	db.AutoMigrate(&models.Inventaris{})
 
 	router := gin.Default()
 	db.AutoMigrate(&models.Produk{})
+	db.AutoMigrate(&models.Inventaris{})
 	routes.SetUpRoutes(router, db)
 	router.Run(":8080")
 }
