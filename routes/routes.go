@@ -10,6 +10,7 @@ import (
 func SetUpRoutes(r *gin.Engine, db *gorm.DB) {
 	produkController := controllers.NewProdukController(db)
 	inventarisController := controllers.NewInventarisController(db)
+	pesananController := controllers.NewPesananController(db)
 
 	api := r.Group("/api")
 	{
@@ -28,6 +29,12 @@ func SetUpRoutes(r *gin.Engine, db *gorm.DB) {
 			inventaris.GET("/:id", inventarisController.GetProdukInventarisByProdukId)
 			inventaris.PUT("/:id", inventarisController.UpdateInventarisById)
 			inventaris.DELETE("/destroy/:id", inventarisController.HardDeleteInventarisById)
+		}
+		pesanan := api.Group("/pesanan")
+		{
+			pesanan.GET("/:id", pesananController.GetDetailPesananById)
+			pesanan.POST("/:produk_id", pesananController.CreatePesanan)
+			pesanan.DELETE("/destroy/:id", pesananController.HardDeletePesananById)
 		}
 	}
 }

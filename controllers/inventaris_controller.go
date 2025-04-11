@@ -59,6 +59,14 @@ func (c *InventarisController) UpdateInventarisById(ctx *gin.Context) {
 		return
 	}
 
+	// Validate : Jumlah is valid
+	if req.Jumlah < 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid jumlah",
+		})
+		return
+	}
+
 	// Query
 	result := c.DB.First(&inventaris, "id = ? AND deleted_at IS NULL", id)
 	if result.Error != nil {
