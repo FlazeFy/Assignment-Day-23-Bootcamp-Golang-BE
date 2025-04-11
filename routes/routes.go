@@ -18,6 +18,7 @@ func SetUpRoutes(r *gin.Engine, db *gorm.DB) {
 		{
 			produk.GET("/", produkController.GetAllProduk)
 			produk.GET("/:id", produkController.GetProdukById)
+			produk.GET("/produk_image/:id", produkController.GetDownloadProdukImage)
 			produk.GET("/kategori/:kategori", produkController.GetProdukByKategori)
 			produk.POST("/", produkController.CreateProduk)
 			produk.PUT("/:id", produkController.UpdateProdukById)

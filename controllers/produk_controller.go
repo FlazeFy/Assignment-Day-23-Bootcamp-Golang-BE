@@ -2,7 +2,12 @@ package controllers
 
 import (
 	"assignment23/models"
+	"fmt"
 	"net/http"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -35,7 +40,7 @@ func (c *ProdukController) GetAllProduk(ctx *gin.Context) {
 
 	ctx.JSON(status, gin.H{
 		"data":    data,
-		"message": "Produk fetched",
+		"message": "produk fetched",
 	})
 }
 
@@ -60,7 +65,7 @@ func (c *ProdukController) GetProdukById(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"data":    produk,
-		"message": "Produk fetched",
+		"message": "produk fetched",
 	})
 }
 
@@ -85,47 +90,94 @@ func (c *ProdukController) GetProdukByKategori(ctx *gin.Context) {
 
 	ctx.JSON(status, gin.H{
 		"data":    data,
-		"message": "Produk by kategori fetched",
+		"message": "produk by kategori fetched",
 	})
+}
+
+// Download
+func (c *ProdukController) GetDownloadProdukImage(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	// Query : Get Produk
+	var produk models.Produk
+	if err := c.DB.First(&produk, "id = ? AND deleted_at IS NULL", id).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"message": "produk not found",
+		})
+		return
+	}
+
+	// Check if image exists
+	if produk.ProdukImage != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"message": "produk image not available",
+		})
+		return
+	}
+
+	filePath := strings.TrimPrefix(*produk.ProdukImage, fmt.Sprintf("http://%s/", ctx.Request.Host))
+
+	// Response
+	ctx.FileAttachment(filePath, filepath.Base(filePath))
 }
 
 // Commands
 func (c *ProdukController) CreateProduk(ctx *gin.Context) {
-	// Request body
-	var req models.CreateProduk
+	// Request Body
+	name := ctx.PostForm("name")
+	deskripsi := ctx.PostForm("deskripsi")
+	hargaStr := ctx.PostForm("harga")
+	kategori := ctx.PostForm("kategori")
+	jumlahStr := ctx.PostForm("jumlah")
+	lokasi := ctx.PostForm("lokasi")
 
-	// Validation
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "invalid request body",
-		})
+	// Parse Int from form
+	harga, err := strconv.Atoi(hargaStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "harga must be number"})
+		return
+	}
+	jumlah, err := strconv.Atoi(jumlahStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "jumlah must be number"})
 		return
 	}
 
-	// Create Produk
+	// Produk Image Upload
+	var produkImage *string
+	file, err := ctx.FormFile("produk_image")
+	if err == nil {
+		filename := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
+		filePath := "storages/" + filename
+		if err := ctx.SaveUploadedFile(file, filePath); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "failed to save image"})
+			return
+		}
+		url := fmt.Sprintf("http://%s/%s", ctx.Request.Host, filePath)
+		produkImage = &url
+	}
+
+	// Query : Create Produk
 	produk := models.Produk{
-		Name:      req.Name,
-		Deskripsi: req.Deskripsi,
-		Harga:     req.Harga,
-		Kategori:  req.Kategori,
+		Name:        name,
+		Deskripsi:   deskripsi,
+		Harga:       harga,
+		Kategori:    kategori,
+		ProdukImage: produkImage,
 	}
 	if err := c.DB.Create(&produk).Error; err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": "failed to create produk",
-		})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "failed to create produk"})
 		return
 	}
 
-	// Create Inventaris
+	// Query : Create Inventaris
 	inventaris := models.Inventaris{
 		ProdukID: produk.ID,
-		Jumlah:   req.Jumlah,
-		Lokasi:   req.Lokasi,
+		Jumlah:   jumlah,
+		Lokasi:   lokasi,
 	}
 	if err := c.DB.Create(&inventaris).Error; err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": "failed to create inventaris",
-		})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "failed to create inventaris"})
 		return
 	}
 
@@ -135,7 +187,7 @@ func (c *ProdukController) CreateProduk(ctx *gin.Context) {
 			"produk":     produk,
 			"inventaris": inventaris,
 		},
-		"message": "Produk created",
+		"message": "produk created",
 	})
 }
 
@@ -174,7 +226,7 @@ func (c *ProdukController) UpdateProdukById(ctx *gin.Context) {
 	// Response
 	ctx.JSON(http.StatusOK, gin.H{
 		"data":    produk,
-		"message": "Produk updated",
+		"message": "produk updated",
 	})
 }
 
@@ -197,7 +249,7 @@ func (c *ProdukController) SoftDeleteProdukById(ctx *gin.Context) {
 
 	// Response
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Produk deleted",
+		"message": "produk deleted",
 	})
 }
 
@@ -220,6 +272,6 @@ func (c *ProdukController) HardDeleteProdukById(ctx *gin.Context) {
 
 	// Response
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Produk permanentally deleted",
+		"message": "produk permanentally deleted",
 	})
 }

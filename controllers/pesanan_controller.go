@@ -39,7 +39,7 @@ func (c *PesananController) GetDetailPesananById(ctx *gin.Context) {
 	// Response
 	ctx.JSON(http.StatusOK, gin.H{
 		"data":    pesanan,
-		"message": "Pesanan with produk fetched",
+		"message": "pesanan with produk fetched",
 	})
 }
 
@@ -111,7 +111,7 @@ func (c *PesananController) CreatePesanan(ctx *gin.Context) {
 			TanggalPesan: pesanan.TanggalPesan,
 			ProdukID:     pesanan.ProdukID,
 		},
-		"message": "pesanan berhasil dibuat dan stok diperbarui",
+		"message": "pesanan created",
 	})
 }
 
@@ -134,6 +134,6 @@ func (c *PesananController) HardDeletePesananById(ctx *gin.Context) {
 
 	// Response
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Pesanan permanentally deleted",
+		"message": "pesanan permanentally deleted",
 	})
 }

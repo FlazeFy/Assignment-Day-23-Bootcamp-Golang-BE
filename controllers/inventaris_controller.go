@@ -38,7 +38,7 @@ func (c *InventarisController) GetProdukInventarisByProdukId(ctx *gin.Context) {
 	// Response
 	ctx.JSON(http.StatusOK, gin.H{
 		"data":    produk,
-		"message": "Produk with inventaris fetched",
+		"message": "produk with inventaris fetched",
 	})
 }
 
@@ -83,7 +83,7 @@ func (c *InventarisController) UpdateInventarisById(ctx *gin.Context) {
 	// Response
 	ctx.JSON(http.StatusOK, gin.H{
 		"data":    inventaris,
-		"message": "Inventaris updated",
+		"message": "inventaris updated",
 	})
 }
 
@@ -106,6 +106,6 @@ func (c *InventarisController) HardDeleteInventarisById(ctx *gin.Context) {
 
 	// Response
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Inventaris permanentally deleted",
+		"message": "inventaris permanentally deleted",
 	})
 }
