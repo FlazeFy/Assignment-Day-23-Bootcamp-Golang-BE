@@ -16,9 +16,9 @@ type (
 		Produk   Produk `json:"produk" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	}
 	PesananResponse struct {
-		ID           uint      `json:"id"`
-		CreatedAt    time.Time `json:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at"`
+		ID           uint      `json:"ID"`
+		CreatedAt    time.Time `json:"CreatedAt"`
+		UpdatedAt    time.Time `json:"UpdatedAt"`
 		Jumlah       int       `json:"jumlah"`
 		TanggalPesan time.Time `json:"tanggal_pesanan"`
 		ProdukID     uint      `json:"produk_id"`

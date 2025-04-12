@@ -4,6 +4,7 @@ import (
 	"assignment23/models"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -108,17 +109,26 @@ func (c *ProdukController) GetDownloadProdukImage(ctx *gin.Context) {
 	}
 
 	// Check if image exists
-	if produk.ProdukImage != nil {
+	if produk.ProdukImage == nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"message": "produk image not available",
 		})
 		return
 	}
 
-	filePath := strings.TrimPrefix(*produk.ProdukImage, fmt.Sprintf("http://%s/", ctx.Request.Host))
+	// Check if file exists
+	imageURL := *produk.ProdukImage
+	relativePath := strings.TrimPrefix(imageURL, fmt.Sprintf("http://%s/", ctx.Request.Host))
+	if _, err := os.Stat(relativePath); os.IsNotExist(err) {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"message": "file not found on server",
+			"path":    relativePath,
+		})
+		return
+	}
 
 	// Response
-	ctx.FileAttachment(filePath, filepath.Base(filePath))
+	ctx.FileAttachment(relativePath, filepath.Base(relativePath))
 }
 
 // Commands
